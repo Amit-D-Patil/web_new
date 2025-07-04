@@ -46,5 +46,5 @@ app.use((err, req, res, next) => {
 
 // ✅ Start Server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running`);
 });
