@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
 const inventorySchema = new mongoose.Schema({
-  itemCode: {
-    type: String,
-    required: true,
-    unique: true
-  },
+  // itemCode: {
+  //   type: String,
+  //   required: true,
+  //   unique: true
+  // },
   itemType: {
     type: String,
     required: true,
