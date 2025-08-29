@@ -1,47 +1,67 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const invoiceSchema = new mongoose.Schema({
   invoiceNumber: { type: Number, unique: true },
   date: { type: Date, default: Date.now },
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
-  totalAmount: { type: Number, required: true },
-  paidAmount: { type: Number, required: true, default: 0 },
-  dueAmount: { type: Number, required: true, default: 0 },
-  items: [{
-    name: { type: String, required: true },
-    weight: { type: Number, required: true },
-    rate: { type: Number, required: true },
-    makingCharge: { type: Number, default: 0 },
-    totalPrice: { type: Number, required: true }
-  }],
-  gst: { type: Number, default: 3 },
-  gstAmount: { type: Number, required: true, default: 0 },
+  dueDate: { type: Date, required: true },
+
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true },
+
+  items: [
+    {
+      itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Inventory", required: true },
+      quantity: { type: Number, required: true, default: 1 },
+      weight: { type: Number, required: true },
+      pricePerGram: { type: Number, required: true },
+      makingCharge: { type: Number, default: 0 },
+      totalPrice: { type: Number, required: true },
+    },
+  ],
+
   subtotal: { type: Number, required: true },
-  status: { type: String, enum: ['pending', 'partial', 'paid'], default: 'pending' }
+  gst: { type: Number, default: 3 },
+  gstAmount: { type: Number, required: true },
+  totalAmount: { type: Number, required: true },
+  paidAmount: { type: Number, default: 0 },
+  dueAmount: { type: Number, default: 0 },
+
+  paymentMethod: {
+    type: String,
+    enum: ["cash", "card", "upi", "bank", "cheque"],
+    default: "cash",
+  },
+  notes: { type: String, default: "" },
+
+  status: {
+    type: String,
+    enum: ["pending", "partial", "paid"],
+    default: "pending",
+  },
 });
 
-// Pre-save middleware to generate invoice number
-invoiceSchema.pre('save', async function(next) {
-  if (!this.invoiceNumber) {
-    const lastInvoice = await this.constructor.findOne({}, {}, { sort: { 'invoiceNumber': -1 } });
-    this.invoiceNumber = lastInvoice ? lastInvoice.invoiceNumber + 1 : 1;
+// Auto-generate invoice number
+invoiceSchema.pre("save", async function (next) {
+  // Only generate if it's a new invoice
+  if (this.isNew) {
+    const lastInvoice = await this.constructor.findOne({}, {}, { sort: { invoiceNumber: -1 } });
+    this.invoiceNumber = lastInvoice ? parseInt(lastInvoice.invoiceNumber) + 1 : 1;
   }
   next();
 });
 
-// Pre-save middleware to calculate status
-invoiceSchema.pre('save', function(next) {
+// Auto-calculate due amount & status
+invoiceSchema.pre("save", function (next) {
   if (this.paidAmount >= this.totalAmount) {
-    this.status = 'paid';
+    this.status = "paid";
     this.dueAmount = 0;
   } else if (this.paidAmount > 0) {
-    this.status = 'partial';
+    this.status = "partial";
     this.dueAmount = this.totalAmount - this.paidAmount;
   } else {
-    this.status = 'pending';
+    this.status = "pending";
     this.dueAmount = this.totalAmount;
   }
   next();
 });
 
-export default mongoose.model('Invoice', invoiceSchema);
+export default mongoose.model("Invoice", invoiceSchema);

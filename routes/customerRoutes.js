@@ -1,6 +1,6 @@
 import express from 'express';
 import Customer from '../models/Customer.js';
-
+import Invoice from '../models/Invoice.js';
 const router = express.Router();
 
 // POST: Create new customer
@@ -10,6 +10,13 @@ router.post('/', async (req, res) => {
     const saved = await customer.save();
     res.status(201).json(saved);
   } catch (error) {
+    if (error.code === 11000 && error.keyPattern?.mobile) {
+      return res.status(400).json({
+        message: 'A customer with this mobile number already exists',
+        field: 'mobile',
+        code: 'DUPLICATE_MOBILE'
+      });
+    }
     res.status(400).json({ message: error.message });
   }
 });
@@ -32,11 +39,14 @@ router.get('/', async (req, res) => {
 // GET: Get a single customer by ID (optional but useful)
 router.get('/:id', async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findById(req.params.id).select("_id name mobile email address loyaltyPoints");
+    const purchases = await Invoice.find({ customer: req.params.id }).select("_id invoiceNumber date totalAmount paidAmount dueAmount");
+    const totalDue = purchases.reduce((sum, invoice) => sum + (invoice.dueAmount || 0), 0);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
-    res.json(customer);
+    res.json({ ...customer.toObject(), totalDue, history: purchases });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 

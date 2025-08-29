@@ -79,14 +79,27 @@ router.put('/:id', async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
-    
+
     if (!updatedItem) {
       return res.status(404).json({ message: 'Item not found' });
     }
-    
+
     res.json(updatedItem);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// DELETE: Delete an inventory item by ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const deleted = await Inventory.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    res.json({ message: 'Item deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

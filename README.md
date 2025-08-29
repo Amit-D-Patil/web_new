@@ -1,1 +1,139 @@
 # jewellery
+
+## API Documentation
+
+This document outlines the available API routes, their functionalities, and how they are implemented.
+
+### Authentication
+
+- **File:** `routes/authRoutes.js`
+- **Base Path:** `/api/auth`
+- **Middleware:** None
+
+All routes under this path are public and do not require authentication.
+
+#### Endpoints:
+
+- **`POST /register`**: Registers a new user.
+  - **Implementation:** It takes a `username` and `password` in the request body. The password is encrypted using `bcrypt` before being stored in `data/users.json`.
+- **`POST /login`**: Logs in an existing user.
+  - **Implementation:** It takes a `username` and `password` in the request body. It compares the provided password with the hashed password in the database. If the credentials are valid, it generates a JSON Web Token (JWT) and returns it to the client.
+
+---
+
+### Customers
+
+- **File:** `routes/customerRoutes.js`
+- **Base Path:** `/api/customers`
+- **Middleware:** `authenticateToken`
+
+All routes under this path require a valid JWT for access.
+
+#### Endpoints:
+
+- **`GET /`**: Retrieves a list of all customers.
+  - **Implementation:** It fetches all documents from the `customers` collection in MongoDB.
+- **`GET /:id`**: Retrieves a single customer by their ID.
+  - **Implementation:** It finds a customer by their `_id`.
+- **`POST /`**: Creates a new customer.
+  - **Implementation:** It creates a new customer document in the database based on the request body.
+- **`PUT /:id`**: Updates an existing customer.
+  - **Implementation:** It finds a customer by their `_id` and updates their information.
+- **`DELETE /:id`**: Deletes a customer.
+  - **Implementation:** It finds a customer by their `_id` and removes them from the database.
+
+---
+
+### Invoices
+
+- **File:** `routes/invoiceRoutes.js`
+- **Base Path:** `/api/invoices`
+- **Middleware:** `authenticateToken`
+
+All routes under this path require a valid JWT for access.
+
+#### Endpoints:
+
+- **`GET /`**: Retrieves a list of all invoices.
+  - **Implementation:** It fetches all documents from the `invoices` collection and populates the `customer` and `items.inventoryItem` fields with data from other collections.
+- **`GET /:id`**: Retrieves a single invoice by its ID.
+  - **Implementation:** It finds an invoice by its `_id` and populates the `customer` and `items.inventoryItem` fields.
+- **`POST /`**: Creates a new invoice.
+  - **Implementation:** It creates a new invoice document in the database based on the request body.
+- **`PUT /:id`**: Updates an existing invoice.
+  - **Implementation:** It finds an invoice by its `_id` and updates its information.
+- **`DELETE /:id`**: Deletes an invoice.
+  - **Implementation:** It finds an invoice by its `_id` and removes it from the database.
+
+---
+
+### Gold Loans
+
+- **File:** `routes/goldLoanRoutes.js`
+- **Base Path:** `/api/gold-loans`
+- **Middleware:** `authenticateToken`
+
+All routes under this path require a valid JWT for access.
+
+#### Endpoints:
+
+- **`GET /`**: Retrieves a list of all gold loans.
+  - **Implementation:** It fetches all documents from the `goldloans` collection and populates the `customer` field.
+- **`GET /:id`**: Retrieves a single gold loan by its ID.
+  - **Implementation:** It finds a gold loan by its `_id` and populates the `customer` field.
+- **`POST /`**: Creates a new gold loan.
+  - **Implementation:** It creates a new gold loan document in the database based on the request body.
+- **`PUT /:id`**: Updates an existing gold loan.
+  - **Implementation:** It finds a gold loan by its `_id` and updates its information.
+- **`DELETE /:id`**: Deletes a gold loan.
+  - **Implementation:** It finds a gold loan by its `_id` and removes it from the database.
+
+---
+
+### Inventory
+
+- **File:** `routes/inventoryRoutes.js`
+- **Base Path:** `/api/inventory`
+- **Middleware:** `authenticateToken`
+
+All routes under this path require a valid JWT for access.
+
+#### Endpoints:
+
+- **`GET /`**: Retrieves a list of all inventory items.
+  - **Implementation:** It fetches all documents from the `inventories` collection.
+- **`GET /:id`**: Retrieves a single inventory item by its ID.
+  - **Implementation:** It finds an inventory item by its `_id`.
+- **`POST /`**: Creates a new inventory item.
+  - **Implementation:** It creates a new inventory item document in the database based on the request body.
+- **`PUT /:id`**: Updates an existing inventory item.
+  - **Implementation:** It finds an inventory item by its `_id` and updates its information.
+- **`DELETE /:id`**: Deletes an inventory item.
+  - **Implementation:** It finds an inventory item by its `_id` and removes it from the database.
+
+---
+
+### Bhishi (Savings Scheme)
+
+- **File:** `routes/bhishiRoutes.js`
+- **Base Path:** `/api/bhishis`
+- **Middleware:** `authenticateToken`
+
+This module manages "Bhishi," a type of recurring savings scheme or piggy bank system for a group of members. All routes under this path require a valid JWT for access.
+
+#### Endpoints:
+
+/\*\*
+
+- @route GET /api/bhishi/:customerId
+- @desc Get Bhishi account details for a specific customer
+  \*/
+  /\*\*
+- @route POST /api/bhishi/:customerId/redeem
+- @desc Redeem amount from Bhishi account for a specific customer
+  \*/
+  /\*\*
+- @route POST /api/bhishi/:customerId/deposit
+- @desc Deposit amount into Bhishi account for a specific customer
+- Request body: { amount: Number, notes: String (optional) }
+  \*/

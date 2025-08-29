@@ -9,7 +9,6 @@ const goldLoanSchema = new mongoose.Schema({
   loanNumber: {
     type: String,
     unique: true,
-    required: true
   },
   loanAmount: {
     type: Number,
@@ -27,39 +26,19 @@ const goldLoanSchema = new mongoose.Schema({
     required: true,
     default: Date.now
   },
-  duration: {
+  tenure: {
     type: Number, // in months
     required: true,
     min: 1
   },
   endDate: {
     type: Date,
-    required: true
   },
-  items: [{
-    itemType: {
-      type: String,
-      required: true,
-      enum: ['Gold', 'Silver', 'Diamond']
-    },
-    description: String,
-    weight: {
-      type: Number,
-      required: true,
-      min: 0
-    },
-    purity: {
-      type: Number, // in Karat for gold
-      required: true
-    },
-    marketValue: {
-      type: Number,
-      required: true
-    }
-  }],
-  totalItemsValue: {
-    type: Number,
-    required: true
+  collateralDetails: {
+    collateralType: { type: String, required: true },
+    purity: { type: String, required: true },
+    weight: { type: Number, required: true },
+    marketValue: { type: Number, required: true }
   },
   repayments: [{
     date: Date,
@@ -77,27 +56,30 @@ const goldLoanSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  nextPaymentDue: Date,
-  createdAt: {
-    type: Date,
-    default: Date.now
+  notes: {
+    type: String,
+    default: ''
   },
-  updatedAt: Date
-});
+  emi: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  nextPaymentDue: Date,
+}, { timestamps: true });
 
 // Pre-save middleware to update the endDate and nextPaymentDue
-goldLoanSchema.pre('save', function(next) {
-  if (this.isNew || this.isModified('startDate') || this.isModified('duration')) {
-    const startDate = new Date(this.startDate);
-    this.endDate = new Date(startDate.setMonth(startDate.getMonth() + this.duration));
+goldLoanSchema.pre('save', function (next) {
+  if (this.isNew) {
+    const startDate = new Date(this.createdAt);
+    this.endDate = new Date(startDate.setMonth(startDate.getMonth() + this.tenure));
     this.nextPaymentDue = new Date(startDate.setMonth(startDate.getMonth() + 1));
   }
-  this.updatedAt = new Date();
   next();
 });
 
 // Pre-save middleware to generate loan number
-goldLoanSchema.pre('save', async function(next) {
+goldLoanSchema.pre('save', async function (next) {
   if (this.isNew) {
     const lastLoan = await this.constructor.findOne({}, {}, { sort: { 'loanNumber': -1 } });
     const nextNumber = lastLoan ? parseInt(lastLoan.loanNumber.slice(2)) + 1 : 1;

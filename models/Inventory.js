@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
 const inventorySchema = new mongoose.Schema({
-  // itemCode: {
-  //   type: String,
-  //   required: true,
-  //   unique: true
-  // },
+  itemCode: {
+    type: String,
+    // required: true,
+    unique: true
+  },
   itemType: {
     type: String,
     required: true,
@@ -90,7 +90,7 @@ const inventorySchema = new mongoose.Schema({
 });
 
 // Pre-save middleware to generate item code
-inventorySchema.pre('save', async function(next) {
+inventorySchema.pre('save', async function (next) {
   if (this.isNew) {
     const prefix = this.itemType.substring(0, 2).toUpperCase();
     const lastItem = await this.constructor.findOne(
@@ -106,7 +106,7 @@ inventorySchema.pre('save', async function(next) {
 });
 
 // Pre-save middleware to update status based on quantity and reorder level
-inventorySchema.pre('save', function(next) {
+inventorySchema.pre('save', function (next) {
   if (this.quantity <= 0) {
     this.status = 'out-of-stock';
   } else if (this.quantity <= this.reorderLevel) {
